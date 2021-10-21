@@ -1,26 +1,50 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import {Redirect, Route} from 'react-router-dom';
+import Main from "./components/Main";
+import Profile from "./components/Profile";
+import {connect, ConnectedProps} from "react-redux";
+import {AppStateType} from "./redux/store";
+import {authorize} from "./redux/reducer";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const mapStateToProps = (state: AppStateType) => ({
+        ...state
+    }
+);
+
+const mapDispatchToProps = (dispatch: any) => {
+    return {
+        authorize: () => {
+            dispatch(authorize());
+        }
+    };
 }
 
-export default App;
+
+const App = (props: AppProps) => (
+    <>
+        <Route exact path="/"
+               render={() => <Main login={props.login} password={props.password} onAuth={props.authorize}/>}/>
+
+        <Route path="/profile/"
+               render={() => profileRedirect(props.authStatus, props.login)}/>
+    </>
+)
+
+
+function profileRedirect(authStatus: boolean, login: string) {
+    if (authStatus) {
+        return (
+            <Profile login={login}/>
+        )
+    } else {
+        return (
+            <Redirect to={"/"}/>
+        )
+    }
+}
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+type AppProps = ConnectedProps<typeof connector>;
+
+export default connector(App);
